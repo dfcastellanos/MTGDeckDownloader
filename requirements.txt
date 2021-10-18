@@ -1,0 +1,15 @@
+pandas
+requests
+bs4
+lxml
+pytest
+pytest-cov
+pylint
+black
+boto3
+botocore
+python-json-logger
+click
+joblib
+progressbar2
+

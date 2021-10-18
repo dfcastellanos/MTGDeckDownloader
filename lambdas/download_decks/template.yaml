@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  python3.8
+
+  SAM Template for LambdaDownloadDecks
+
+Globals:
+  Function:
+    Timeout: 30
+
+Resources:
+  LambdaDownloadDecks:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+    Metadata:
+      Dockerfile: ./lambdas/download_decks/Dockerfile
+      DockerContext: ../../
+      DockerTag: python3.8-v1

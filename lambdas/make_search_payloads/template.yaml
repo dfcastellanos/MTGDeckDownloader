@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  python3.8
+
+  SAM Template for LambdaMakeSearchPayloads
+
+Globals:
+  Function:
+    Timeout: 60
+
+Resources:
+  LambdaMakeSearchPayloads:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+    Metadata:
+      Dockerfile: ./lambdas/make_search_payloads/Dockerfile
+      DockerContext: ../../
+      DockerTag: python3.8-v1
