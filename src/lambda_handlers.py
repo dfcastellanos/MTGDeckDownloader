@@ -6,6 +6,7 @@ import json
 from download_decks import make_search_payloads, download_decks_in_search_results
 from helpers import LOG, send_sqs_msg
 
+# pylint: disable=W0612, W0613, E0401
 
 def make_search_payloads_handler(event, context):
 

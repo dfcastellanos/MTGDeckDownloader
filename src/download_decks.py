@@ -10,6 +10,7 @@ from joblib import Parallel, delayed
 
 from helpers import LOG
 
+# pylint: disable=W0612, W0613, E0401
 
 def get_list(session_requests, payload):
 

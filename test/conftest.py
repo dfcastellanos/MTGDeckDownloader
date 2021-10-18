@@ -10,6 +10,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../s
 import download_decks
 import data_handler
 
+# pylint: disable=W0612, W0613, E0401
+
 # _______________________________________________________________
 # To use the local filesystem as the storage for test data
 
