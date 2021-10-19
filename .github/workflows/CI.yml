@@ -1,4 +1,4 @@
-name: CI
+name: Python 3.8
 on:
   push:
     branches:
