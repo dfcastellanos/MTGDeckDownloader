@@ -15,7 +15,8 @@ REGION = "eu-central-1"
 
 SQS = boto3.client("sqs", region_name=REGION)
 
-def send_sqs_msg(msg, queue_name):
+
+def send_sqs_msg(queue_name, msg, attrs):
 
     queue_url = SQS.get_queue_url(QueueName=queue_name)["QueueUrl"]
     queue_send_log_msg = "Send message to queue url: %s, with body: %s" % (
@@ -24,7 +25,9 @@ def send_sqs_msg(msg, queue_name):
     )
     LOG.info(queue_send_log_msg)
     json_msg = json.dumps(msg)
-    response = SQS.send_message( QueueUrl=queue_url, MessageBody=json_msg )
+    response = SQS.send_message(
+        QueueUrl=queue_url, MessageBody=json_msg, MessageAttributes=attrs
+    )
     queue_send_log_msg_resp = "Response to message sent to queue with url %s: %s" % (
         response,
         queue_url,
