@@ -7,7 +7,7 @@ from download_decks import make_search_payloads, download_decks_in_search_result
 from helpers import LOG, send_sqs_msg
 
 
-def make_search_payloads_handler(event, context):
+def deck_producer(event, context):
 
     # pylint: disable=W0612, W0613
 
@@ -22,7 +22,7 @@ def make_search_payloads_handler(event, context):
     return {"statusCode": 200}
 
 
-def download_decks_handler(msg, context):
+def deck_consumer(msg, context):
 
     # pylint: disable=W0612, W0613
 

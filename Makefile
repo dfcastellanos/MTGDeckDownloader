@@ -16,8 +16,8 @@ lint:
 # commands for building and deploying as AWS SAM applications
 
 # USAGE: if its the first deployment, lambda_deploy_guided must be called for
-# both lambdas, i.e. as lambda_deploy_guided name=make_search_payloads and then 
-# lambda_deploy_guided name=download_decks (accepting all the default options)
+# both lambdas, i.e. as lambda_deploy_guided name=deck_producer and then 
+# lambda_deploy_guided name=deck_consumer (accepting all the default options)
 # After this call, the samconfig.toml files are updated with AWS specific 
 # details (the ECR arn for each Lambda function and the S3 bucket with the sam data).
 # After the first initial guided deployment, the targets lambda_deploy name=... 
@@ -38,10 +38,10 @@ lambda_deploy:
 	sam deploy --config-file samconfig.toml 
 	
 lambda_deploy_all:
-	cd lambdas/make_search_payloads/ && \
+	cd lambdas/deck_producer/ && \
 	sam build --template template.yaml && \
-	sam deploy --config-file samconfig.toml \
+	sam deploy --config-file samconfig.toml && \
 	cd - && \
-	cd lambdas/download_decks/ && \
+	cd lambdas/deck_consumer/ && \
 	sam build --template template.yaml && \
 	sam deploy --config-file samconfig.toml 

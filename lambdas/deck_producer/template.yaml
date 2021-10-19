@@ -3,20 +3,20 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   python3.8
 
-  SAM Template for LambdaDownloadDecks
+  SAM Template for LambdaDeckProducer
 
 Globals:
   Function:
-    Timeout: 30
+    Timeout: 60
 
 Resources:
-  LambdaDownloadDecks:
+  LambdaDeckProducer:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
       Architectures:
         - x86_64
     Metadata:
-      Dockerfile: ./lambdas/download_decks/Dockerfile
+      Dockerfile: ./lambdas/deck_producer/Dockerfile
       DockerContext: ../../
       DockerTag: python3.8-v1

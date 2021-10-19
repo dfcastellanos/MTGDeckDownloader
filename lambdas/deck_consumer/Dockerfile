@@ -4,4 +4,4 @@ COPY ./src/ ./requirements.txt ./
 
 RUN python3.8 -m pip install -r requirements.txt -t .
 
-CMD ["lambda_handlers.download_decks_handler"]
+CMD ["lambda_handlers.deck_consumer"]

@@ -2,6 +2,6 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "download-decks"
+stack_name = "deck-consumer"
 region = "eu-central-1"
 capabilities = "CAPABILITY_IAM"

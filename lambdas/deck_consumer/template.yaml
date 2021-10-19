@@ -3,20 +3,20 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   python3.8
 
-  SAM Template for LambdaMakeSearchPayloads
+  SAM Template for LambdaDeckConsumer
 
 Globals:
   Function:
-    Timeout: 60
+    Timeout: 30
 
 Resources:
-  LambdaMakeSearchPayloads:
+  LambdaDeckConsumer:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
       Architectures:
         - x86_64
     Metadata:
-      Dockerfile: ./lambdas/make_search_payloads/Dockerfile
+      Dockerfile: ./lambdas/deck_consumer/Dockerfile
       DockerContext: ../../
       DockerTag: python3.8-v1
