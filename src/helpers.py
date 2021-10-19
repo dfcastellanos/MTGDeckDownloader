@@ -12,10 +12,9 @@ logHandler.setFormatter(formatter)
 LOG.addHandler(logHandler)
 LOG.propagate = False
 
-SQS = boto3.client("sqs")
-
 REGION = "eu-central-1"
 
+SQS = boto3.client("sqs", region_name=REGION)
 
 def sqs_queue_resource(queue_name):
     """Returns an SQS queue resource connection
