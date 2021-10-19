@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import click
 import os
 import pandas as pd
 from io import StringIO
@@ -16,14 +15,14 @@ class DataHandler:
     def df_to_warehouse(self, df, dest_file):
         path = self.root
         if self.verbose:
-            click.echo(f"Wrriting DataFrame to {path}/{dest_file}")
+            print(f"Wrriting DataFrame to {path}/{dest_file}")
         df.to_csv(f"{path}/{dest_file}", index=False)
         return
 
     def df_from_warehouse(self, source_file):
         path = self.root
         if self.verbose:
-            click.echo(f"Loading DataFrame from {path}/{source_file}")
+            print(f"Loading DataFrame from {path}/{source_file}")
         df = pd.read_csv(f"{path}/{source_file}")
 
         if "date" in df.columns:

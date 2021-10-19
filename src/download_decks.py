@@ -10,8 +10,6 @@ from joblib import Parallel, delayed
 
 from helpers import LOG
 
-# pylint: disable=W0612, W0613, E0401
-
 def get_list(session_requests, payload):
 
     # payload_example = {'format': 'MO', 'current_page':results_page_number,
@@ -81,12 +79,14 @@ def get_composition(session_requests, deck):
     # is the one with the deck type. We create a generator of divs to find
     # the one with the text, and then get and keep the next one
     div_list = (d for d in deck_web_soup.find_all("div", {"class": "S14"}))
-
+    div = None
+    
     for div in div_list:
         if " MTGO" in div.getText():
             break
 
     # download the deck's list of cards
+    assert div is not None
     div_link = div
     download_rel_link = div_link.find("a")["href"]
     download_abs_link = "https://www.mtgtop8.com/" + download_rel_link
@@ -102,8 +102,7 @@ def get_composition(session_requests, deck):
         # sometimes the deck type is missing, which results in StopIteration exception.
         # This problem seems to occur whenever the deck type is given as mana symbols
         # instead of as words
-        LOG.error(
-            f"ERROR parsing deck type and cards download link (deck name contains mana symbols?). Deck: {deck}"
+        LOG.error("ERROR parsing deck type and cards download link (deck name contains mana symbols?). Deck: %s", deck
         )
         deck["type"] = "unkown"
 

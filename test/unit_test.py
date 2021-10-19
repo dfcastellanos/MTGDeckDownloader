@@ -5,9 +5,9 @@ import requests
 import requests.exceptions
 import json
 
-from conftest import download_decks
 from conftest import path_to_validation_data
 from conftest import DataHandlerType
+import download_decks
 
 
 def server_is_up(url):

@@ -6,9 +6,10 @@ import json
 from download_decks import make_search_payloads, download_decks_in_search_results
 from helpers import LOG, send_sqs_msg
 
-# pylint: disable=W0612, W0613, E0401
 
 def make_search_payloads_handler(event, context):
+
+    # pylint: disable=W0612, W0613
 
     template_payload = event
     payload_list = make_search_payloads(template_payload)
@@ -23,10 +24,12 @@ def make_search_payloads_handler(event, context):
 
 def download_decks_handler(msg, context):
 
+    # pylint: disable=W0612, W0613
+
     assert len(msg["Records"]) == 1
     payload = json.loads(msg["Records"][0]["body"])
 
-    LOG.info(f"Downloading decks from search page with payload: {payload}")
+    LOG.info("Downloading decks from search page with payload: %s", payload)
 
     deck_list = download_decks_in_search_results(payload)
 
@@ -35,6 +38,7 @@ def download_decks_handler(msg, context):
     for deck in deck_list:
         response = send_sqs_msg(deck, queue_name)
 
-    LOG.info(f"Finished downloading decks from search page with payload: {payload}")
+    LOG.info("Finished downloading decks from search page with payload: %s", payload)
 
     return {"statusCode": 200}
+

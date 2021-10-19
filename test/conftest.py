@@ -7,7 +7,6 @@ import sys
 import json
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
-import download_decks
 import data_handler
 
 # pylint: disable=W0612, W0613, E0401
