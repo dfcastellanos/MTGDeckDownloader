@@ -1,0 +1,29 @@
+{
+   "Records":[
+      {
+         "body":"{\"format\": \"MO\", \"date_start\": \"25/09/2021\", \"date_end\": \"27/09/2021\", \"current_page\": 5}",
+         "messageAttributes":{
+            "date_added":{
+               "stringValue":"20/10/21",
+               "stringListValues":[
+                  
+               ],
+               "binaryListValues":[
+                  
+               ],
+               "dataType":"String"
+            },
+            "msg_type":{
+               "stringValue":"deck_search_payload",
+               "stringListValues":[
+                  
+               ],
+               "binaryListValues":[
+                  
+               ],
+               "dataType":"String"
+            }
+         }
+      }
+   ]
+}

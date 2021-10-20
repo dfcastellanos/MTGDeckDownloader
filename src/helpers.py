@@ -23,15 +23,15 @@ def send_sqs_msg(queue_name, msg, attrs):
         queue_url,
         msg,
     )
-    LOG.info(queue_send_log_msg)
+    LOG.debug(queue_send_log_msg)
     json_msg = json.dumps(msg)
     response = SQS.send_message(
         QueueUrl=queue_url, MessageBody=json_msg, MessageAttributes=attrs
     )
     queue_send_log_msg_resp = "Response to message sent to queue with url %s: %s" % (
-        response,
         queue_url,
+        response
     )
-    LOG.info(queue_send_log_msg_resp)
+    LOG.debug(queue_send_log_msg_resp)
 
     return response
