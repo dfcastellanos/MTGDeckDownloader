@@ -30,7 +30,7 @@ def send_sqs_msg(queue_name, msg, attrs):
     )
     queue_send_log_msg_resp = "Response to message sent to queue with url %s: %s" % (
         queue_url,
-        response
+        response,
     )
     LOG.info(queue_send_log_msg_resp)
 

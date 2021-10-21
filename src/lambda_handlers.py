@@ -18,10 +18,14 @@ def deck_producer(event, context):
     template_payload = json.loads(event)
     payload_list = make_search_payloads(template_payload)
 
-    queue_name = os.environ['DECKS_CONSUMER_QUEUE']
-    attrs = {"msg_type": {"StringValue": "deck_search_payload", "DataType": "String"},
-             "date_added": {"StringValue": date.today().strftime('%d/%m/%y'), "DataType": "String"}
-            }
+    queue_name = os.environ["DECKS_CONSUMER_QUEUE"]
+    attrs = {
+        "msg_type": {"StringValue": "deck_search_payload", "DataType": "String"},
+        "date_added": {
+            "StringValue": date.today().strftime("%d/%m/%y"),
+            "DataType": "String",
+        },
+    }
 
     for payload in payload_list:
         response = send_sqs_msg(queue_name, payload, attrs)
@@ -44,11 +48,15 @@ def deck_consumer(event, context):
 
     deck_list = download_decks_in_search_results(payload)
 
-    queue_name = os.environ['DECKS_OUTPUT_QUEUE']
-    
-    attrs = {"msg_type": {"StringValue": "full_deck", "DataType": "String"},
-            "date_added": {"StringValue": date.today().strftime('%d/%m/%y'), "DataType": "String"}
-            }
+    queue_name = os.environ["DECKS_OUTPUT_QUEUE"]
+
+    attrs = {
+        "msg_type": {"StringValue": "full_deck", "DataType": "String"},
+        "date_added": {
+            "StringValue": date.today().strftime("%d/%m/%y"),
+            "DataType": "String",
+        },
+    }
 
     for deck in deck_list:
         response = send_sqs_msg(queue_name, deck, attrs)
