@@ -32,6 +32,6 @@ def send_sqs_msg(queue_name, msg, attrs):
         queue_url,
         response
     )
-    LOG.debug(queue_send_log_msg_resp)
+    LOG.info(queue_send_log_msg_resp)
 
     return response
