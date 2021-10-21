@@ -8,7 +8,10 @@ Description: >
 Globals:
   Function:
     Timeout: 60
-
+    Environment:
+      Variables:
+        DECKS_CONSUMER_QUEUE: decks-queue
+        
 Resources:
   LambdaDeckProducer:
     Type: AWS::Serverless::Function

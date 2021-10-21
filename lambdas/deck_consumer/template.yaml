@@ -8,7 +8,10 @@ Description: >
 Globals:
   Function:
     Timeout: 30
-
+    Environment:
+      Variables:
+        DECKS_OUTPUT_QUEUE: data-lake-queue
+        
 Resources:
   LambdaDeckConsumer:
     Type: AWS::Serverless::Function

@@ -3,6 +3,7 @@
 
 import json
 from datetime import date
+import os
 
 from download_decks import make_search_payloads, download_decks_in_search_results
 from helpers import LOG, send_sqs_msg
@@ -17,7 +18,7 @@ def deck_producer(event, context):
     template_payload = json.loads(event)
     payload_list = make_search_payloads(template_payload)
 
-    queue_name = "deck-search-payloads-queue"
+    queue_name = os.environ['DECKS_CONSUMER_QUEUE']
     attrs = {"msg_type": {"StringValue": "deck_search_payload", "DataType": "String"},
              "date_added": {"StringValue": date.today().strftime('%d/%m/%y'), "DataType": "String"}
             }
@@ -43,7 +44,8 @@ def deck_consumer(event, context):
 
     deck_list = download_decks_in_search_results(payload)
 
-    queue_name = "downloaded-decks-queue"
+    queue_name = os.environ['DECKS_OUTPUT_QUEUE']
+    
     attrs = {"msg_type": {"StringValue": "full_deck", "DataType": "String"},
             "date_added": {"StringValue": date.today().strftime('%d/%m/%y'), "DataType": "String"}
             }
