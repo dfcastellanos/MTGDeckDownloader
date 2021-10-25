@@ -10,13 +10,47 @@ from joblib import Parallel, delayed
 
 from helpers import LOG
 
+# pylint: disable=W0105
+
+"""
+This module implements a web scraper that automatically finds, parses and 
+downloads data corresponding to MTG decks from www.mtgtop8.com. It can be used
+from the command line (see doc for the main function), imported
+into other scripts using the function download_decks_in_search_results, or 
+deployed as a serverless application in AWS Lamba.
+"""
+
 
 def get_list(session_requests, payload):
 
-    # payload_example = {'format': 'MO', 'current_page':results_page_number,
-    #                   'date_start':'01/01/2010',
-    #                    'date_end':date.today().strftime('%d/%m/%Y')
-    #                   }
+    """
+    Download the list of decks returned by the search engine
+
+    Parameters
+    ----------
+    session_requests : requests.Session object
+        A Session objects from the requests module
+
+    payload : dictionary
+        A payload for the search engine. Example: payload to
+        retrieve the first list of results with decks that were played in the
+        Modern format between 01/01/2010 and 01/01/2020:
+
+                 {
+                 'format': 'MO',
+                  'current_page': 1,
+                  'date_start':'01/01/2010',
+                  'date_end': '01/01/2020'
+                  }
+
+    Returns
+    -------
+    List of dictionaries
+        Each dictionary in the list corresponds to the metadata of each deck,
+        including the link to its page (where the cards composing the deck can
+        be found)
+    """
+
     url = "http://mtgtop8.com/search"
 
     # request a list of decks from the search form
@@ -69,6 +103,24 @@ def get_list(session_requests, payload):
 
 def get_composition(session_requests, deck):
 
+    """
+    Download the cards composing a decks form and the deck's type
+
+    Parameters
+    ----------
+    session_requests : requests.Session object
+        A Session objects from the requests module
+
+    deck: dictionary
+        A deck's metadata, including the link to its page. This dictionary
+        is updated during this function call.
+
+    Returns
+    -------
+    dictionary
+        The input deck, updated with the cards that compose it and the deck type
+    """
+
     # request a specific deck's website
     deck_web = session_requests.get(deck["link"])
     deck_web.raise_for_status()
@@ -113,6 +165,35 @@ def get_composition(session_requests, deck):
 
 
 def make_search_payloads(payload):
+
+    """
+    Make the payloads needed for querying the search engine.
+    Each payload corresponds to an individual results page,
+    defined by the payload's current_page key.
+
+    Since the search engine does not inform about the number of
+    available result pages, this function looks for it by first finding an
+    upper bound to the number of pages and then applying a bisection search to
+    efficiently finding the exact number of results pages available.
+
+    Parameters
+    ----------
+    payload : dictionary
+        A template payload for the search engine. Example: payload
+        to retrieve the first list of results with decks that were played in the
+        Modern format between 01/01/2010 and 01/01/2020:
+
+                 {
+                 'format': 'MO',
+                  'date_start':'01/01/2010',
+                  'date_end': '01/01/2020'
+                  }
+
+    Returns
+    -------
+    List of dictionaries
+        The list of payloads corresponding to individual result pages.
+    """
 
     session_requests = requests.session()
 
@@ -160,6 +241,29 @@ def make_search_payloads(payload):
 
 def download_decks_in_search_results(payload):
 
+    """
+    Download the decks returned by the search engine when queried with the payload.
+
+    Parameters
+    ----------
+    payload : dictionary
+        A payload for the search engine. Example: a payload to
+        retrieve the first list of results with decks that were played in the
+        Modern format between 01/01/2010 and 01/01/2020:
+
+                 {
+                 'format': 'MO',
+                  'current_page': 1,
+                  'date_start':'01/01/2010',
+                  'date_end': '01/01/2020'
+                  }
+
+    Returns
+    -------
+    List of dictionaries
+        The list of payloads corresponding to individual result pages.
+    """
+
     session_requests = requests.session()
 
     deck_list = get_list(session_requests, payload)
@@ -175,6 +279,22 @@ def download_decks_in_search_results(payload):
 
 def main():
 
+    """
+    Download decks from www.mtgtop8.com. The results are printed to stdout in
+    JSON format.
+
+    Command-line interface:
+
+      -h, --help            show this help message and exit
+      -p PAYLOAD, --payload PAYLOAD
+                            Payload for the search form. Example: '{"format":
+                            "MO", "date_start": "25/09/2021", "date_end":
+                            "27/09/2021"}'
+      -n N, --n N           Number of parallel processes (warning: a high number may
+                            cause the server to blacklist the IP address)
+
+    """
+
     parser = argparse.ArgumentParser(description="Download decks from www.mtgtop8.com")
     parser.add_argument(
         "-p",
@@ -184,7 +304,11 @@ def main():
         required=True,
     )
     parser.add_argument(
-        "-n", "--n", type=int, help="Number of parallel processes", default=1
+        "-n",
+        "--n",
+        type=int,
+        help="Number of parallel processes (warning: a high number may cause the server to blacklist the IP address)",
+        default=1,
     )
     args = vars(parser.parse_args())
 
@@ -199,12 +323,14 @@ def main():
         for payload in progressbar(payload_list)
     )
 
-    deck_flat_list = []
+    decks_flat = dict()
+    n = 0
     for sublist in deck_double_list:
         for deck in sublist:
-            deck_flat_list.append(deck)
+            decks_flat[n] = deck
+            n += 1
 
-    return deck_flat_list
+    return json.dumps(decks_flat)
 
 
 if __name__ == "__main__":

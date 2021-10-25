@@ -8,10 +8,39 @@ import os
 from download_decks import make_search_payloads, download_decks_in_search_results
 from helpers import LOG, send_sqs_msg
 
+# pylint: disable=W0105
+
+"""
+This module provides handlers that allow using the functions of the module 
+download_decks as serverless applications in AWS Lambda.
+"""
+
 
 def deck_producer(event, context):
 
     # pylint: disable=W0612, W0613
+
+    """
+    This function is the AWS Lambda handler for the download_decks.make_search_payloads
+    function, which acts as a producer. Specifically, it creates the payloads
+    that can be processed in parallel by another Lambda function that acts as
+    a consumer. The created payloads are sent to an SQS queue with a name defined
+    by the environment variable DECKS_CONSUMER_QUEUE.
+
+    Parameters
+    ----------
+    event: string
+        A JSON-formated string
+
+    context : dictionary
+        Details about AWS Lambda runtime used during the function call (see AWS
+        Lambda for details)
+
+    Returns
+    -------
+    Dictionary
+        Success status code ("200")
+    """
 
     LOG.debug("The input event is: %s", event)
 
@@ -36,6 +65,30 @@ def deck_producer(event, context):
 def deck_consumer(event, context):
 
     # pylint: disable=W0612, W0613
+
+    """
+    This is the AWS Lambda handler for the function download_decks.download_decks_in_search_results.
+    It is meant to be triggered when the AWS SQS queue with a name defined by the
+    environment variable DECKS_CONSUMER_QUEUE has pending messages. Thus, this
+    function acts as a consumer for the jobs created by deck_producer.
+
+    Each of the jobs downloads several decks, which are sent to the AWS SQS queue
+    with a name defined by the environment variable DECKS_OUTPUT_QUEUE.
+
+    Parameters
+    ----------
+    event: string
+        A JSON-formated string
+
+    context : dictionary
+        Details about AWS Lambda runtime used during the function call (see AWS
+        Lambda for details)
+
+    Returns
+    -------
+    Dictionary
+        Success status code ("200")
+    """
 
     LOG.debug("The input event is: %s", event)
 

@@ -3,6 +3,8 @@ import json
 import logging
 from pythonjsonlogger import jsonlogger
 
+# pylint: disable=W0105
+
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 logHandler = logging.StreamHandler()
@@ -11,12 +13,38 @@ logHandler.setFormatter(formatter)
 LOG.addHandler(logHandler)
 LOG.propagate = False
 
+# the AWS region
 REGION = "eu-central-1"
 
 SQS = boto3.client("sqs", region_name=REGION)
 
 
 def send_sqs_msg(queue_name, msg, attrs):
+
+    """
+    Send a message to an AWS SQS queue.
+
+    Parameters
+    ----------
+    queue_name : string
+        The queue name
+
+    msg: dictionary
+        The message
+
+    attrs:
+        Message attributes, with a format
+
+        {"attr1": {"StringValue": value1", "DataType": "String"},
+         "attr2": {"StringValue": "value2", "DataType": "String"},
+         ...
+        }
+
+    Returns
+    -------
+    Dictionary
+        The response from SQS to the send message operation
+    """
 
     queue_url = SQS.get_queue_url(QueueName=queue_name)["QueueUrl"]
     queue_send_log_msg = "Send message to queue url: %s, with body: %s" % (
