@@ -144,7 +144,7 @@ def get_composition(session_requests, deck):
     download_rel_link = div_link.find("a")["href"]
     download_abs_link = "https://www.mtgtop8.com/" + download_rel_link
     deck_cards = session_requests.get(download_abs_link, allow_redirects=True)
-    deck["cards"] = deck_cards.content.decode("utf-8").replace("\n", ";\n")
+    deck["cards"] = deck_cards.content.decode(encoding="ISO-8859-1").replace("\n", ";\n")
 
     try:
         div_type = next(div_list)
