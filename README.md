@@ -1,8 +1,10 @@
 [![Python 3.8](https://github.com/kastellane/MTGDeckDownloader/actions/workflows/CI.yml/badge.svg)](https://github.com/kastellane/MTGDeckDownloader/actions/workflows/CI.yml)
 
+<a href="https://codeclimate.com/github/kastellane/MTGDeckDownloader/maintainability"><img src="https://api.codeclimate.com/v1/badges/832a2c0241bb36026c21/maintainability" /></a>
+
 # MTGDeckDownloader
 
-A web scraper that finds, parses, and downloads (in parallel) data from decks played in events of "Magic: The Gathering" (TM Wizards of the Coast) stored in mtgtop8.com. 
+A web scraper that finds, parses, and downloads (in parallel) data from decks played in events of "Magic: The Gathering" (TM Wizards of the Coast) stored in mtgtop8.com. This data includes the date on which the decks were played, the deck type, the event and player names, and the composition of the decks.
 
 The web scraper can be deployed as a serverless application in AWS Lamba, called from the command line, or imported into other Python scripts.
 
