@@ -6,6 +6,8 @@ from datetime import date
 import os
 import datetime
 import pandas as pd
+import boto3
+import botocore
 
 from download_decks import (
     make_search_payloads,
@@ -22,35 +24,44 @@ download_decks as serverless applications in AWS Lambda.
 """
 
 
-def load_payload_registry(path):
+def load_payload_registry(key_to_registry_file):
 
     """
     Load the payload registry file as a DataFrame
 
     Parameters
     ----------
-    path: string
-        The S3 path (i.e., bucket_name/key) to the file
+    key: string
+        The S3 key to the file
 
     Returns
     -------
     DataFrame
         A pandas DataFrame with the loaded data
     """
+    
+    S3 = boto3.client('s3')
+    bucket_name = os.environ["MTG_DATA_BUCKET"]
 
     try:
-        df = pd.read_csv(path)
-        log_msg = "%s found" % path
+        S3.download_file(bucket_name, key_to_registry_file, '/tmp/payload_registry')
+        df = pd.read_csv('/tmp/payload_registry')
+        log_msg = "%s found" % key_to_registry_file
         LOG.info(log_msg)
-    except FileNotFoundError:
-        df = pd.DataFrame()
-        log_msg = "%s not found - creating a new one" % path
-        LOG.info(log_msg)
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            # The object does not exist.
+            df = pd.DataFrame()
+            log_msg = "%s not found - creating a new one" % key_to_registry_file
+            LOG.info(log_msg)
+        else:
+            raise
+        
 
     return df
 
 
-def udpate_payload_registry(template_payload, path, mode):
+def udpate_payload_registry(template_payload, key_to_registry_file, mode):
 
     """
     Update the payload registry to include a new payload. It also writes the
@@ -61,9 +72,9 @@ def udpate_payload_registry(template_payload, path, mode):
     template_payload: dictionary
         The payload
 
-    path: string
-        The S3 path (i.e., bucket_name/key) to the file
-
+   key: string
+        The S3 key to the file
+        
     mode: string
         Mode of creation of the payload (e.g., automated or manual)
     """
@@ -72,14 +83,18 @@ def udpate_payload_registry(template_payload, path, mode):
     data["operation_time"] = datetime.date.today().strftime("%d/%m/%Y")
     data["mode"] = mode
 
-    df = load_payload_registry(path)
+    df = load_payload_registry(key_to_registry_file)
     df = pd.concat([df, pd.DataFrame(data, index=[0])])
-    df.to_csv(path, index=False)
+    df.to_csv('/tmp/payload_registry', index=False)
+    
+    S3 = boto3.client('s3')
+    bucket_name = os.environ["MTG_DATA_BUCKET"]
+    S3.upload_file('/tmp/payload_registry', bucket_name, key_to_registry_file)
 
     return
 
 
-def generate_automatic_template_payload(path):
+def generate_automatic_template_payload(key_to_registry_file):
 
     """
     This function creates deck search payloads with a start date equal to the
@@ -92,7 +107,7 @@ def generate_automatic_template_payload(path):
         The payload
     """
 
-    df = load_payload_registry(path)
+    df = load_payload_registry(key_to_registry_file)
 
     if len(df) > 0:
         template_payload = {
@@ -144,18 +159,17 @@ def deck_producer(event, context):
 
     LOG.debug("The input event is: %s", event)
 
-    bucket_name = os.environ["OUTPUT_BUCKET"]
-    key = "deck_payload_registry.csv"
-    path_to_payload_registry = f"s3://{bucket_name}/{key}"
+    bucket_name = os.environ["MTG_DATA_BUCKET"]
+    key_to_registry_file = "deck_payload_registry.csv"
 
     if event != "":
         template_payload = json.loads(event)
-        udpate_payload_registry(template_payload, path_to_payload_registry, "manual")
+        udpate_payload_registry(template_payload, key_to_registry_file, "manual")
         log_msg = "Provided template payload: %s" % template_payload
         LOG.info(log_msg)
     else:
-        template_payload = generate_automatic_template_payload(path_to_payload_registry)
-        udpate_payload_registry(template_payload, path_to_payload_registry, "automated")
+        template_payload = generate_automatic_template_payload(key_to_registry_file)
+        udpate_payload_registry(template_payload, key_to_registry_file, "automated")
         log_msg = "Auto-generated template payload: %s" % template_payload
         LOG.info(log_msg)
 
@@ -187,7 +201,7 @@ def deck_consumer(event, context):
     function acts as a consumer for the jobs created by deck_producer.
 
     Each of the jobs downloads several decks, which are sent to an S3 bucket
-    defined by the environment variable OUTPUT_BUCKET.
+    defined by the environment variable MTG_DATA_BUCKET.
 
     Parameters
     ----------
@@ -215,9 +229,10 @@ def deck_consumer(event, context):
 
     deck_list = download_decks_in_search_results(payload)
 
-    bucket_name = os.environ["OUTPUT_BUCKET"]
+    bucket_name = os.environ["MTG_DATA_BUCKET"]
 
     for deck in deck_list:
+        deck['date_download'] = datetime.date.today().strftime("%d/%m/%y")
         filename = make_deck_hash(deck)
         key = f"decks/{filename}.json"
         response = write_data_s3_bucket(deck, bucket_name, key)

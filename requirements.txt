@@ -10,4 +10,3 @@ boto3
 python-json-logger
 joblib
 progressbar2
-s3fs
