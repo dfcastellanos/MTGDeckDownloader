@@ -17,6 +17,7 @@ LOG.propagate = False
 REGION = "eu-central-1"
 
 SQS = boto3.client("sqs", region_name=REGION)
+S3 = boto3.client("s3", region_name=REGION)
 
 
 def send_sqs_msg(queue_name, msg, attrs):
@@ -61,5 +62,44 @@ def send_sqs_msg(queue_name, msg, attrs):
         response,
     )
     LOG.info(queue_send_log_msg_resp)
+
+    return response
+
+
+def send_data_s3_bucket(body, bucket_name, key):
+
+    """
+    Write data to an AWS S3 bucket.
+
+    Parameters
+    ----------
+    bucket_name: string
+        The name of the S3 bucket
+
+    key : string
+        The key where the data is located within the bucket
+
+    body : string
+        The body
+
+    Returns
+    -------
+    Dictionary
+        The response from S3
+    """
+
+    send_log_msg = "Sending data to s3 bucket %s, with body: %s" % (
+        bucket_name,
+        body,
+    )
+    LOG.debug(send_log_msg)
+    json_data = json.dumps(body)
+    response = S3.put_object(Bucket=bucket_name, Key=key, Body=json_data)
+
+    send_log_msg_resp = "Response to data sent to s3 bucket %s: %s" % (
+        bucket_name,
+        response,
+    )
+    LOG.info(send_log_msg_resp)
 
     return response

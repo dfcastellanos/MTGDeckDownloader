@@ -5,8 +5,12 @@ import json
 from datetime import date
 import os
 
-from download_decks import make_search_payloads, download_decks_in_search_results
-from helpers import LOG, send_sqs_msg
+from download_decks import (
+    make_search_payloads,
+    download_decks_in_search_results,
+    make_deck_hash,
+)
+from helpers import LOG, send_sqs_msg, send_data_s3_bucket
 
 # pylint: disable=W0105
 
@@ -72,8 +76,8 @@ def deck_consumer(event, context):
     environment variable DECKS_CONSUMER_QUEUE has pending messages. Thus, this
     function acts as a consumer for the jobs created by deck_producer.
 
-    Each of the jobs downloads several decks, which are sent to the AWS SQS queue
-    with a name defined by the environment variable DECKS_OUTPUT_QUEUE.
+    Each of the jobs downloads several decks, which are sent to an S3 bucket
+    defined by the environment variable OUTPUT_BUCKET.
 
     Parameters
     ----------
@@ -101,18 +105,12 @@ def deck_consumer(event, context):
 
     deck_list = download_decks_in_search_results(payload)
 
-    queue_name = os.environ["DECKS_OUTPUT_QUEUE"]
-
-    attrs = {
-        "msg_type": {"StringValue": "full_deck", "DataType": "String"},
-        "date_added": {
-            "StringValue": date.today().strftime("%d/%m/%y"),
-            "DataType": "String",
-        },
-    }
+    bucket_name = os.environ["OUTPUT_BUCKET"]
 
     for deck in deck_list:
-        response = send_sqs_msg(queue_name, deck, attrs)
+        filename = make_deck_hash(deck)
+        key = f"decks/{filename}.json"
+        response = send_data_s3_bucket(deck, bucket_name, key)
 
     LOG.info("Finished downloading decks from search page with payload: %s", payload)
 

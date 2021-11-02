@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import argparse
 from progressbar import progressbar
 from joblib import Parallel, delayed
+import hashlib
 
 from helpers import LOG
 
@@ -144,7 +145,9 @@ def get_composition(session_requests, deck):
     download_rel_link = div_link.find("a")["href"]
     download_abs_link = "https://www.mtgtop8.com/" + download_rel_link
     deck_cards = session_requests.get(download_abs_link, allow_redirects=True)
-    deck["cards"] = deck_cards.content.decode(encoding="ISO-8859-1").replace("\n", ";\n")
+    deck["cards"] = deck_cards.content.decode(encoding="ISO-8859-1").replace(
+        "\n", ";\n"
+    )
 
     try:
         div_type = next(div_list)
@@ -162,6 +165,28 @@ def get_composition(session_requests, deck):
         deck["type"] = "unkown"
 
     return deck
+
+
+def make_deck_hash(deck):
+    # compute a hash that acts as a unique identifier for each deck
+    # we use hashlib because python's built-in hash function is not deterministic
+    # (it is only within the same run). We keep only the first 8 characters of the
+    # hash because that's unique enough, and will save memory, specially in the
+    # DeckCards database
+    x = deck["player"].strip(" ").replace("\r", "").replace("\n", "")
+    y = deck["date"]
+    z = deck["event"].strip(" ").replace("\r", "").replace("\n", "")
+    deck_str_id = "{}|{}|{}".format(x, y, z)
+    deck_hash = hashlib.sha224(str.encode(deck_str_id)).hexdigest()[:8]
+    return deck_hash
+
+
+def make_deck_filename(deck):
+
+    filename = "{}|{}|{}".format(deck["player"], deck["name"], deck["event"])
+    filename = filename.replace(" ", "_").replace("/", "-")
+
+    return filename
 
 
 def make_search_payloads(payload):

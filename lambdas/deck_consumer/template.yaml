@@ -10,7 +10,7 @@ Globals:
     Timeout: 30
     Environment:
       Variables:
-        DECKS_OUTPUT_QUEUE: data-lake-queue
+        OUTPUT_BUCKET: mtg-analysis-data
         
 Resources:
   LambdaDeckConsumer:
