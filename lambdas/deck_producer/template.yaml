@@ -8,10 +8,11 @@ Description: >
 Globals:
   Function:
     Timeout: 60
+    MemorySize: 256
     Environment:
       Variables:
         DECKS_CONSUMER_QUEUE: decks-queue
-        OUTPUT_BUCKET: mtg-analysis-data
+        MTG_DATA_BUCKET: mtg-analysis-data
         
 Resources:
   LambdaDeckProducer:

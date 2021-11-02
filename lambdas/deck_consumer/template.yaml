@@ -10,7 +10,7 @@ Globals:
     Timeout: 30
     Environment:
       Variables:
-        OUTPUT_BUCKET: mtg-analysis-data
+        MTG_DATA_BUCKET: mtg-analysis-data
         
 Resources:
   LambdaDeckConsumer:

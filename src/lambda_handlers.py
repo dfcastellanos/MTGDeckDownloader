@@ -39,24 +39,23 @@ def load_payload_registry(key_to_registry_file):
     DataFrame
         A pandas DataFrame with the loaded data
     """
-    
-    S3 = boto3.client('s3')
+
+    S3 = boto3.client("s3")
     bucket_name = os.environ["MTG_DATA_BUCKET"]
 
     try:
-        S3.download_file(bucket_name, key_to_registry_file, '/tmp/payload_registry')
-        df = pd.read_csv('/tmp/payload_registry')
+        S3.download_file(bucket_name, key_to_registry_file, "/tmp/payload_registry")
+        df = pd.read_csv("/tmp/payload_registry")
         log_msg = "%s found" % key_to_registry_file
         LOG.info(log_msg)
     except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == "404":
+        if e.response["Error"]["Code"] == "404":
             # The object does not exist.
             df = pd.DataFrame()
             log_msg = "%s not found - creating a new one" % key_to_registry_file
             LOG.info(log_msg)
         else:
             raise
-        
 
     return df
 
@@ -64,19 +63,19 @@ def load_payload_registry(key_to_registry_file):
 def udpate_payload_registry(template_payload, key_to_registry_file, mode):
 
     """
-    Update the payload registry to include a new payload. It also writes the
-    date at which the operation took place and the payload creation mode.
+     Update the payload registry to include a new payload. It also writes the
+     date at which the operation took place and the payload creation mode.
 
-    Parameters
-    ----------
-    template_payload: dictionary
-        The payload
+     Parameters
+     ----------
+     template_payload: dictionary
+         The payload
 
-   key: string
-        The S3 key to the file
-        
-    mode: string
-        Mode of creation of the payload (e.g., automated or manual)
+    key: string
+         The S3 key to the file
+
+     mode: string
+         Mode of creation of the payload (e.g., automated or manual)
     """
 
     data = template_payload.copy()
@@ -85,11 +84,11 @@ def udpate_payload_registry(template_payload, key_to_registry_file, mode):
 
     df = load_payload_registry(key_to_registry_file)
     df = pd.concat([df, pd.DataFrame(data, index=[0])])
-    df.to_csv('/tmp/payload_registry', index=False)
-    
-    S3 = boto3.client('s3')
+    df.to_csv("/tmp/payload_registry", index=False)
+
+    S3 = boto3.client("s3")
     bucket_name = os.environ["MTG_DATA_BUCKET"]
-    S3.upload_file('/tmp/payload_registry', bucket_name, key_to_registry_file)
+    S3.upload_file("/tmp/payload_registry", bucket_name, key_to_registry_file)
 
     return
 
@@ -232,7 +231,7 @@ def deck_consumer(event, context):
     bucket_name = os.environ["MTG_DATA_BUCKET"]
 
     for deck in deck_list:
-        deck['date_download'] = datetime.date.today().strftime("%d/%m/%y")
+        deck["date_download"] = datetime.date.today().strftime("%d/%m/%y")
         filename = make_deck_hash(deck)
         key = f"decks/{filename}.json"
         response = write_data_s3_bucket(deck, bucket_name, key)
