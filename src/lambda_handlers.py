@@ -4,13 +4,15 @@
 import json
 from datetime import date
 import os
+import datetime
+import pandas as pd
 
 from download_decks import (
     make_search_payloads,
     download_decks_in_search_results,
     make_deck_hash,
 )
-from helpers import LOG, send_sqs_msg, send_data_s3_bucket
+from helpers import LOG, send_sqs_msg, write_data_s3_bucket
 
 # pylint: disable=W0105
 
@@ -18,6 +20,51 @@ from helpers import LOG, send_sqs_msg, send_data_s3_bucket
 This module provides handlers that allow using the functions of the module 
 download_decks as serverless applications in AWS Lambda.
 """
+
+
+def generate_automatic_template_payload():
+
+    """
+    This function creates deck search payloads that are used when calling
+    deck_producer automatically, based e.g. on scheduled events. It creates
+    a payload with a start date equal to the end date of the last
+    automatically-generated, and an end date equal to the current date.
+
+    Returns
+    -------
+    Dictionary
+        The payload
+    """
+
+    bucket_name = os.environ["OUTPUT_BUCKET"]
+    key = "deck_automated_payloads.csv"
+    path = f"s3://{bucket_name}/{key}"
+
+    try:
+        df = pd.read_csv(path)
+        template_payload = {
+            "format": "MO",
+            "date_start": df.iloc[-1]["date_end"],
+            "date_end": datetime.date.today().strftime("%d/%m/%Y"),
+        }
+        log_msg = "%s found" % key
+        LOG.info(log_msg)
+
+    except FileNotFoundError:
+
+        df = pd.DataFrame()
+        template_payload = {
+            "format": "MO",
+            "date_start": "01/01/2005",
+            "date_end": datetime.date.today().strftime("%d/%m/%Y"),
+        }
+
+    data = template_payload.copy()
+    data["operation_time"] = datetime.date.today().strftime("%d/%m/%Y-%H:%M")
+    df = pd.concat([df, pd.DataFrame(data, index=[0])])
+    df.to_csv(path, index=False)
+
+    return template_payload
 
 
 def deck_producer(event, context):
@@ -30,6 +77,12 @@ def deck_producer(event, context):
     that can be processed in parallel by another Lambda function that acts as
     a consumer. The created payloads are sent to an SQS queue with a name defined
     by the environment variable DECKS_CONSUMER_QUEUE.
+
+    If the event is an empty string, the deck search template payload passed to
+    download_decks.make_search_payloads is generated automatically with a start
+    date equal to the end date of the last automatically-generated, and an end
+    date equal to the current date. If the event is a non-empty string, the
+    string will be loaded as JSON.
 
     Parameters
     ----------
@@ -48,7 +101,15 @@ def deck_producer(event, context):
 
     LOG.debug("The input event is: %s", event)
 
-    template_payload = json.loads(event)
+    if event != "":
+        template_payload = json.loads(event)
+        log_msg = "Provided template payload: %s" % template_payload
+        LOG.info(log_msg)
+    else:
+        template_payload = generate_automatic_template_payload()
+        log_msg = "Auto-generated template payload: %s" % template_payload
+        LOG.info(log_msg)
+
     payload_list = make_search_payloads(template_payload)
 
     queue_name = os.environ["DECKS_CONSUMER_QUEUE"]
@@ -110,7 +171,7 @@ def deck_consumer(event, context):
     for deck in deck_list:
         filename = make_deck_hash(deck)
         key = f"decks/{filename}.json"
-        response = send_data_s3_bucket(deck, bucket_name, key)
+        response = write_data_s3_bucket(deck, bucket_name, key)
 
     LOG.info("Finished downloading decks from search page with payload: %s", payload)
 

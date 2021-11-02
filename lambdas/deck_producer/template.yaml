@@ -11,6 +11,7 @@ Globals:
     Environment:
       Variables:
         DECKS_CONSUMER_QUEUE: decks-queue
+        OUTPUT_BUCKET: mtg-analysis-data
         
 Resources:
   LambdaDeckProducer:

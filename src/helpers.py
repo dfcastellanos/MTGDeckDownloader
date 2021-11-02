@@ -66,7 +66,7 @@ def send_sqs_msg(queue_name, msg, attrs):
     return response
 
 
-def send_data_s3_bucket(body, bucket_name, key):
+def write_data_s3_bucket(body, bucket_name, key):
 
     """
     Write data to an AWS S3 bucket.
