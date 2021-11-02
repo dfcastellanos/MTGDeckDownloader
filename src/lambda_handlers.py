@@ -22,13 +22,69 @@ download_decks as serverless applications in AWS Lambda.
 """
 
 
-def generate_automatic_template_payload():
+def load_payload_registry(path):
 
     """
-    This function creates deck search payloads that are used when calling
-    deck_producer automatically, based e.g. on scheduled events. It creates
-    a payload with a start date equal to the end date of the last
-    automatically-generated, and an end date equal to the current date.
+    Load the payload registry file as a DataFrame
+
+    Parameters
+    ----------
+    path: string
+        The S3 path (i.e., bucket_name/key) to the file
+
+    Returns
+    -------
+    DataFrame
+        A pandas DataFrame with the loaded data
+    """
+
+    try:
+        df = pd.read_csv(path)
+        log_msg = "%s found" % path
+        LOG.info(log_msg)
+    except FileNotFoundError:
+        df = pd.DataFrame()
+        log_msg = "%s not found - creating a new one" % path
+        LOG.info(log_msg)
+
+    return df
+
+
+def udpate_payload_registry(template_payload, path, mode):
+
+    """
+    Update the payload registry to include a new payload. It also writes the
+    date at which the operation took place and the payload creation mode.
+
+    Parameters
+    ----------
+    template_payload: dictionary
+        The payload
+
+    path: string
+        The S3 path (i.e., bucket_name/key) to the file
+
+    mode: string
+        Mode of creation of the payload (e.g., automated or manual)
+    """
+
+    data = template_payload.copy()
+    data["operation_time"] = datetime.date.today().strftime("%d/%m/%Y")
+    data["mode"] = mode
+
+    df = load_payload_registry(path)
+    df = pd.concat([df, pd.DataFrame(data, index=[0])])
+    df.to_csv(path, index=False)
+
+    return
+
+
+def generate_automatic_template_payload(path):
+
+    """
+    This function creates deck search payloads with a start date equal to the
+    end date of the last automatically generated, and an end date equal to the
+    current date.
 
     Returns
     -------
@@ -36,33 +92,20 @@ def generate_automatic_template_payload():
         The payload
     """
 
-    bucket_name = os.environ["OUTPUT_BUCKET"]
-    key = "deck_automated_payloads.csv"
-    path = f"s3://{bucket_name}/{key}"
+    df = load_payload_registry(path)
 
-    try:
-        df = pd.read_csv(path)
+    if len(df) > 0:
         template_payload = {
             "format": "MO",
             "date_start": df.iloc[-1]["date_end"],
             "date_end": datetime.date.today().strftime("%d/%m/%Y"),
         }
-        log_msg = "%s found" % key
-        LOG.info(log_msg)
-
-    except FileNotFoundError:
-
-        df = pd.DataFrame()
+    else:
         template_payload = {
             "format": "MO",
             "date_start": "01/01/2005",
             "date_end": datetime.date.today().strftime("%d/%m/%Y"),
         }
-
-    data = template_payload.copy()
-    data["operation_time"] = datetime.date.today().strftime("%d/%m/%Y-%H:%M")
-    df = pd.concat([df, pd.DataFrame(data, index=[0])])
-    df.to_csv(path, index=False)
 
     return template_payload
 
@@ -101,12 +144,18 @@ def deck_producer(event, context):
 
     LOG.debug("The input event is: %s", event)
 
+    bucket_name = os.environ["OUTPUT_BUCKET"]
+    key = "deck_payload_registry.csv"
+    path_to_payload_registry = f"s3://{bucket_name}/{key}"
+
     if event != "":
         template_payload = json.loads(event)
+        udpate_payload_registry(template_payload, path_to_payload_registry, "manual")
         log_msg = "Provided template payload: %s" % template_payload
         LOG.info(log_msg)
     else:
-        template_payload = generate_automatic_template_payload()
+        template_payload = generate_automatic_template_payload(path_to_payload_registry)
+        udpate_payload_registry(template_payload, path_to_payload_registry, "automated")
         log_msg = "Auto-generated template payload: %s" % template_payload
         LOG.info(log_msg)
 
