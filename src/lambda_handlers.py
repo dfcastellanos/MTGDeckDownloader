@@ -27,10 +27,12 @@ def load_payload_registry(path):
 
     """
     Load the payload registry file as a DataFrame
+
     Parameters
     ----------
     path: string
         The S3 path (i.e., bucket_name/key) to the file
+
     Returns
     -------
     DataFrame
@@ -54,6 +56,7 @@ def udpate_payload_registry(template_payload, path, mode):
     """
     Update the payload registry to include a new payload. It also writes the
     date at which the operation took place and the payload creation mode.
+
     Parameters
     ----------
     template_payload: dictionary
@@ -81,6 +84,7 @@ def generate_automatic_template_payload(path):
     This function creates deck search payloads with a start date equal to the
     end date of the last automatically generated, and an end date equal to the
     current date.
+
     Returns
     -------
     Dictionary
@@ -120,6 +124,7 @@ def deck_producer(event, context):
     date equal to the end date of the last automatically-generated, and an end
     date equal to the current date. If the event is a non-empty string, the
     string will be loaded as JSON.
+
     Parameters
     ----------
     event: string
@@ -127,6 +132,7 @@ def deck_producer(event, context):
     context : dictionary
         Details about AWS Lambda runtime used during the function call (see AWS
         Lambda for details)
+
     Returns
     -------
     Dictionary
@@ -141,14 +147,11 @@ def deck_producer(event, context):
 
     if event != "":
         template_payload = json.loads(event)
-        udpate_payload_registry(template_payload, path_to_payload_registry, "manual")
-        log_msg = "Provided template payload: %s" % template_payload
-        LOG.info(log_msg)
     else:
         template_payload = generate_automatic_template_payload(path_to_payload_registry)
-        udpate_payload_registry(template_payload, path_to_payload_registry, "automated")
-        log_msg = "Auto-generated template payload: %s" % template_payload
-        LOG.info(log_msg)
+
+    log_msg = "Template payload: %s" % template_payload
+    LOG.info(log_msg)
 
     payload_list = make_search_payloads(template_payload)
 
@@ -163,6 +166,12 @@ def deck_producer(event, context):
 
     for payload in payload_list:
         response = send_sqs_msg(queue_name, payload, attrs)
+
+    # register the new payload after we know that everyhting else worked
+    if event != "":
+        udpate_payload_registry(template_payload, path_to_payload_registry, "manual")
+    else:
+        udpate_payload_registry(template_payload, path_to_payload_registry, "automated")
 
     return {
         "template_payload": template_payload,
