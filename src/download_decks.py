@@ -22,6 +22,35 @@ deployed as a serverless application in AWS Lamba.
 """
 
 
+def make_deck_hash(deck):
+
+    """
+    Compute a hash that acts as a unique identifier for a deck.
+
+    It's based on hashlib because python's built-in hash function is not deterministic
+    (it is only within the same run). It keeps only the first 8 characters of the
+    hash because that's unique enough and will save memory in the databases.
+
+    Parameters
+    ----------
+    deck: dictionary
+        A deck with at least the keys 'player', 'date' and 'event'
+
+    Returns
+    -------
+    String
+        The deck hash
+    """
+
+    x = deck["player"].strip(" ").replace("\r", "").replace("\n", "")
+    y = deck["date"]
+    z = deck["event"].strip(" ").replace("\r", "").replace("\n", "")
+    deck_str_id = "{}|{}|{}".format(x, y, z)
+    deck_hash = hashlib.sha224(str.encode(deck_str_id)).hexdigest()[:8]
+
+    return deck_hash
+
+
 def get_list(session_requests, payload):
 
     """
@@ -87,7 +116,7 @@ def get_list(session_requests, payload):
     # date of the competition in which the deck was played
     dates = [td.find_all("td", {"class": "S11"})[1].getText() for td in table]
 
-    data_from_search_engine = [
+    deck_list = [
         {
             "link": x[0],
             "result": x[1],
@@ -99,7 +128,10 @@ def get_list(session_requests, payload):
         for x in zip(links, results, dates, players, events, names)
     ]
 
-    return data_from_search_engine
+    for deck in deck_list:
+        deck["deck_id"] = make_deck_hash(deck)
+
+    return deck_list
 
 
 def get_composition(session_requests, deck):
@@ -165,20 +197,6 @@ def get_composition(session_requests, deck):
         deck["type"] = "unkown"
 
     return deck
-
-
-def make_deck_hash(deck):
-    # compute a hash that acts as a unique identifier for each deck
-    # we use hashlib because python's built-in hash function is not deterministic
-    # (it is only within the same run). We keep only the first 8 characters of the
-    # hash because that's unique enough, and will save memory, specially in the
-    # DeckCards database
-    x = deck["player"].strip(" ").replace("\r", "").replace("\n", "")
-    y = deck["date"]
-    z = deck["event"].strip(" ").replace("\r", "").replace("\n", "")
-    deck_str_id = "{}|{}|{}".format(x, y, z)
-    deck_hash = hashlib.sha224(str.encode(deck_str_id)).hexdigest()[:8]
-    return deck_hash
 
 
 def make_deck_filename(deck):
