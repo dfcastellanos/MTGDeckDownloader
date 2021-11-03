@@ -232,7 +232,8 @@ def deck_consumer(event, context):
 
     for deck in deck_list:
         deck["date_download"] = datetime.date.today().strftime("%d/%m/%y")
-        filename = make_deck_hash(deck)
+        deck["deck_id"] = make_deck_hash(deck)
+        filename = deck["deck_id"]
         key = f"decks/{filename}.json"
         response = write_data_s3_bucket(deck, bucket_name, key)
 
