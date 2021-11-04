@@ -13,7 +13,7 @@ import pandas as pd
 import s3fs
 
 from download_decks import make_search_payloads, download_decks_in_search_results
-from helpers import LOG, send_sqs_msg, write_data_s3_bucket
+from helpers import LOG, send_sqs_msg
 
 # pylint: disable=W0105
 
@@ -129,6 +129,7 @@ def deck_producer(event, context):
     ----------
     event: string
         A JSON-formated string
+
     context : dictionary
         Details about AWS Lambda runtime used during the function call (see AWS
         Lambda for details)
@@ -167,10 +168,9 @@ def deck_producer(event, context):
     for payload in payload_list:
         response = send_sqs_msg(queue_name, payload, attrs)
 
-    # register the new payload after we know that everyhting else worked
-    if event != "":
-        udpate_payload_registry(template_payload, path_to_payload_registry, "manual")
-    else:
+    # register the new payload after we know that everyhting else worked. Do
+    # it only if it was automatically generated
+    if event == "":
         udpate_payload_registry(template_payload, path_to_payload_registry, "automated")
 
     return {
@@ -219,13 +219,19 @@ def deck_consumer(event, context):
 
     deck_list = download_decks_in_search_results(payload)
 
-    bucket_name = os.environ["MTG_DATA_BUCKET"]
+    queue_name = os.environ["DECKS_DOWNLOADED_QUEUE"]
+
+    attrs = {
+        "msg_type": {"StringValue": "full_deck", "DataType": "String"},
+        "date_added": {
+            "StringValue": date.today().strftime("%d/%m/%y"),
+            "DataType": "String",
+        },
+    }
 
     for deck in deck_list:
         deck["date_download"] = datetime.date.today().strftime("%d/%m/%y")
-        filename = deck["deck_id"]
-        key = f"decks/{filename}.json"
-        response = write_data_s3_bucket(deck, bucket_name, key)
+        response = send_sqs_msg(queue_name, deck, attrs)
 
     LOG.info("Finished downloading decks from search page with payload: %s", payload)
 

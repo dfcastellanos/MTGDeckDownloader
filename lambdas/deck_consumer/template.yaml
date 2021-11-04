@@ -7,10 +7,10 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 30
+    Timeout: 45
     Environment:
       Variables:
-        MTG_DATA_BUCKET: mtg-analysis-data
+        DECKS_DOWNLOADED_QUEUE: decks-downloaded-queue
         
 Resources:
   LambdaDeckConsumer:

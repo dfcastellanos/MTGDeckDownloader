@@ -24,23 +24,18 @@ def send_sqs_msg(queue_name, msg, attrs):
 
     """
     Send a message to an AWS SQS queue.
-
     Parameters
     ----------
     queue_name : string
         The queue name
-
     msg: dictionary
         The message
-
     attrs:
         Message attributes, with a format
-
         {"attr1": {"StringValue": value1", "DataType": "String"},
          "attr2": {"StringValue": "value2", "DataType": "String"},
          ...
         }
-
     Returns
     -------
     Dictionary
@@ -70,18 +65,14 @@ def write_data_s3_bucket(body, bucket_name, key):
 
     """
     Write data to an AWS S3 bucket.
-
     Parameters
     ----------
     bucket_name: string
         The name of the S3 bucket
-
     key : string
         The key where the data is located within the bucket
-
     body : string
         The body
-
     Returns
     -------
     Dictionary

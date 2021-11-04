@@ -191,7 +191,7 @@ def get_composition(session_requests, deck):
         # This problem seems to occur whenever the deck type is given as mana symbols
         # instead of as words
         LOG.error(
-            "ERROR parsing deck type and cards download link (deck name contains mana symbols?). Deck: %s",
+            "Problem parsing deck type and cards download link (deck name contains mana symbols?). Deck: %s",
             deck,
         )
         deck["type"] = "unkown"
