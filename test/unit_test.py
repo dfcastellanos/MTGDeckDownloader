@@ -49,7 +49,7 @@ def test_get_list(tdeck):
     assert len(deck_list) == 1
     deck = deck_list[0]
 
-    for k in ["result", "date", "player", "event", "name"]:
+    for k in ["result", "date", "player", "event", "deck_name"]:
         assert deck[k] == tdeck["deck"][k]
 
     return
