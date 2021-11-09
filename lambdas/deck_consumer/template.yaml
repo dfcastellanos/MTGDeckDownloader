@@ -19,6 +19,8 @@ Resources:
       PackageType: Image
       Architectures:
         - x86_64
+      Policies:
+        - AmazonSQSFullAccess        
     Metadata:
       Dockerfile: ./lambdas/deck_consumer/Dockerfile
       DockerContext: ../../
