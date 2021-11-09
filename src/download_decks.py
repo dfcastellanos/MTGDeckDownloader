@@ -123,13 +123,13 @@ def get_list(session_requests, payload):
             "date": x[2],
             "player": x[3],
             "event": x[4],
-            "deck_name": x[5],
+            "name": x[5],
         }
         for x in zip(links, results, dates, players, events, names)
     ]
 
     for deck in deck_list:
-        deck["deck_id"] = make_deck_hash(deck)
+        deck["id"] = make_deck_hash(deck)
 
     return deck_list
 
