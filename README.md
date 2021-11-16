@@ -35,8 +35,9 @@ The configuration files for the producer function are located in `lambdas/deck_p
 
 For the first deployment, you need to call `make lambda_deploy_guided name=deck_producer` and `make lambda_deploy_guided name=deck_consumer`. You will be prompted to define some configurations along the process, but the default values should work. (If you know what you are doing, you can fine-tune the deployment process at will here). After this call, the `samconfig.toml` files are updated with AWS-specific details (specifically, the ECR arn for each Lambda function and the S3 bucket with the sam data), and subsequent deployments will use them so no further user input will be needed. Thus, after the first deployment, further deployment can be done by calling `make lambda_deploy name=deck_producer` and `make lambda_deploy name=deck_consumer` (also, both lambdas can be deployed in a single call as `make lambda_deploy_all`).
 
-NOTE: for development purposes, you can also build the functions without deploying them doing `make lambda_build name=deck_producer` and `make lambda_build name=deck_consumer`. This allows testing by calling them from the CLI using the `sam local invoke` command (see AWS sam documentation for details).
+NOTE1: during the deploy process, some errors might occur which are likely due to missing permissions. You will need permissions for S3, CloudFormation, Lambda and ECR. Extra permissions might be necessary, and will be indicated in error messages during the process.
 
+NOTE2: if an error occurs during the process, you might need to delete the stacks associated with this application in CloudFormation before retrying.
 
 ## Import into other scripts
 
