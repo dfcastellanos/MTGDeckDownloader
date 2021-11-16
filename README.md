@@ -8,23 +8,6 @@ A web scraper that finds, parses, and downloads (in parallel) data from decks pl
 
 The web scraper can be deployed as a serverless application in AWS Lamba, called from the command line, or imported into other Python scripts.
 
-## Command-line interface
-
-To use this web scraper, you need to first install the dependencies defined in the file `requirements.txt`. You can do it by calling `make install`. It is recommended that before installing the dependencies you create a Python virtual environment. This can be done as `python3 -m venv .myvirtenv` and activated as `source .myvirtenv/bin/activate`.
-
-The web scraper can be called from the command-line interface doing `python src/download_decks.py` (alternatively, it be made executable as `sudo chmod +x src/download_decks.py` and then called as `./src/download_decks.py`). The commands are:
-
-      -h, --help            show this help message and exit
-      -p PAYLOAD, --payload PAYLOAD
-                            Payload for the search form. Example: '{"format":
-                            "MO", "date_start": "25/09/2021", "date_end":
-                            "27/09/2021"}'
-      -n N, --n N           Number of parallel processes (warning: a high number may
-                            cause the server to blacklist the IP address)
-
-The results are printed to stdout in JSON format.
-
-
 ## Deploy as AWS SAM application
 
 NOTE: Although simple, this process assumes some familiarity with serverless applications and AWS Lambda. 
@@ -41,6 +24,22 @@ NOTE1: during the deploy process, some errors might occur which are likely due t
 
 NOTE2: if an error occurs during the process, you might need to delete the stacks associated with this application in CloudFormation before retrying.
 
+## Command-line interface
+
+To use this web scraper, you need to first install the dependencies defined in the file `requirements.txt`. You can do it by calling `make install`. It is recommended that before installing the dependencies you create a Python virtual environment. This can be done as `python3 -m venv .myvirtenv` and activated as `source .myvirtenv/bin/activate`.
+
+The web scraper can be called from the command-line interface doing `python src/download_decks.py` (alternatively, it be made executable as `sudo chmod +x src/download_decks.py` and then called as `./src/download_decks.py`). The commands are:
+
+      -h, --help            show this help message and exit
+      -p PAYLOAD, --payload PAYLOAD
+                            Payload for the search form. Example: '{"format":
+                            "MO", "date_start": "25/09/2021", "date_end":
+                            "27/09/2021"}'
+      -n N, --n N           Number of parallel processes (warning: a high number may
+                            cause the server to blacklist the IP address)
+
+The results are printed to stdout in JSON format.
+
 ## Import into other scripts
 
 Once you have installed the dependencies as explained in the previous section, you can import the functions of the module `src/download_decks.py` and have fine control over the web scraper.
@@ -55,6 +54,3 @@ under the terms of the Creative Commons Attribution 4.0 International Public
 License. The full text of the license can be found in the file LICENSE at the top level of the MTGDeckDownload distribution.
  
 Copyright (C) 2021  - David Fernández Castellanos.
-
-
-   [author's website]: <https://www.davidfcastellanos.com/>
